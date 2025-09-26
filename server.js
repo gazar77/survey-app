@@ -44,6 +44,10 @@ app.get("/api/surveys", async (req, res) => {
     }
 });
 
+app.get("/", (req, res) => {
+  res.send("Hello");
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
