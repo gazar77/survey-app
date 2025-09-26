@@ -1,20 +1,18 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/surveyDB";
+const PORT = process.env.PORT;
+const MONGO_URI = process.env.MONGO_URI;
 
-app.use(cors());
-app.use(express.json({ limit: "100mb" }));
 
+// Connect to MongoDB
 mongoose.connect(MONGO_URI)
-    .then(() => console.log("✅ Connected to MongoDB"))
-    .catch(err => console.error("❌ DB connection error:", err));
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch(err => console.error("❌ DB connection error:", err));
 
-const surveySchema = new mongoose.Schema({
+  const surveySchema = new mongoose.Schema({
     username: { type: String, default: "" },
     userid: { type: String, default: "" },
     answers: Object,
@@ -67,11 +65,11 @@ app.get("/api/surveys", async (req, res) => {
     }
 });
 
-
 app.get("/", (req, res) => {
   res.send("Hello");
 });
 
+// Start server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
