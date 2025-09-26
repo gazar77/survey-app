@@ -37,12 +37,36 @@ app.post("/api/survey", async (req, res) => {
 
 app.get("/api/surveys", async (req, res) => {
     try {
-        const surveys = await Survey.find();
-        res.json(surveys);
+        // قراءة باراميتر الصفحة وعدد العناصر لكل صفحة من الـ query
+        let { page = 1, limit = 10 } = req.query;
+
+        page = parseInt(page);       // تحويل للقيمة الرقمية
+        limit = parseInt(limit);     // تحويل للقيمة الرقمية
+
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
+
+        const skip = (page - 1) * limit;
+
+        const surveys = await Survey.find()
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }); // ترتيب حسب الأحدث أولاً
+
+        const total = await Survey.countDocuments();
+
+        res.json({
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+            totalSurveys: total,
+            surveys
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 app.get("/", (req, res) => {
   res.send("Hello");
