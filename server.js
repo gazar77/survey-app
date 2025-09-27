@@ -9,14 +9,10 @@ const MONGO_URI = process.env.MONGO_URI;
 
 // middlewares
 app.use(cors());
-app.use(express.json());   // ← ده اللي ناقص
-app.use(express.urlencoded({ extended: true })); // ← احتياطي لو هيجيلك form-data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
-mongoose.connect(MONGO_URI)
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch(err => console.error("❌ DB connection error:", err));
-
+// Define schema & model
 const surveySchema = new mongoose.Schema({
   username: { type: String, default: "" },
   userid: { type: String, default: "" },
@@ -26,14 +22,20 @@ const surveySchema = new mongoose.Schema({
 
 const Survey = mongoose.model("Survey", surveySchema);
 
+// Routes
 app.post("/api/survey", async (req, res) => {
   try {
-    console.log("📥 Data received:", req.body);  // Debug log
+    console.log("📥 Data received:", req.body);
 
     const { username = "", userid = "", ...answers } = req.body;
     const newSurvey = new Survey({ username, userid, answers });
     await newSurvey.save();
-    res.status(201).json({ success: true, id: newSurvey._id, message: "Survey saved successfully!" });
+
+    res.status(201).json({
+      success: true,
+      id: newSurvey._id,
+      message: "Survey saved successfully!"
+    });
   } catch (err) {
     console.error("❌ Error saving survey:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -71,7 +73,23 @@ app.get("/", (req, res) => {
   res.send("Hello");
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Start server only after DB connection
+async function startServer() {
+  try {
+    console.log("⏳ Connecting to MongoDB...");
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("✅ Connected to MongoDB");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ DB connection error:", err);
+    process.exit(1); // Exit if DB connection fails
+  }
+}
+
+startServer();
